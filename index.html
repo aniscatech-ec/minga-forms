@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<meta name="googlebot" content="noindex, nofollow">
+<title>MINGA – Evaluación de Satisfacción al Cliente</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #8B1A1A;
+    --red-light: #c0392b;
+    --black: #0f0f0f;
+    --dark: #1a1a1a;
+    --gray-200: #e8e8e8;
+    --gray-100: #f4f4f4;
+    --gray-50: #f9f9f9;
+    --white: #ffffff;
+    --text-main: #1a1a1a;
+    --text-muted: #6b6b6b;
+    --border: #d8d8d8;
+    --shadow: 0 2px 16px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 48px rgba(0,0,0,0.18);
+    --radius: 6px;
+    --transition: 0.2s ease;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Barlow', sans-serif; background: #efefef; color: var(--text-main); min-height: 100vh; }
+
+  /* ===== LOGIN OVERLAY ===== */
+  #login-overlay {
+    position: fixed; inset: 0; z-index: 999;
+    background: var(--dark);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #login-overlay.hidden { display: none; }
+
+  .login-box {
+    background: var(--white); border-radius: 14px;
+    box-shadow: var(--shadow-lg); width: 100%; max-width: 420px; overflow: hidden;
+  }
+  .login-header {
+    background: var(--black); padding: 32px 40px 28px;
+    text-align: center; border-bottom: 3px solid var(--red);
+  }
+  .login-header img { height: 44px; display: block; margin: 0 auto 14px; }
+  .login-header p {
+    color: rgba(255,255,255,0.45); font-size: 0.75rem;
+    letter-spacing: 1.5px; text-transform: uppercase; font-weight: 300;
+  }
+  .login-body { padding: 36px 40px; }
+  .login-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem;
+    letter-spacing: 2px; color: var(--text-main); margin-bottom: 24px; text-align: center;
+  }
+  .login-field { margin-bottom: 18px; }
+  .login-field label {
+    display: block; font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 7px;
+  }
+  .login-field input, .login-field select {
+    width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius);
+    padding: 11px 14px; font-family: 'Barlow', sans-serif; font-size: 0.95rem;
+    color: var(--text-main); background: var(--gray-50); outline: none;
+    transition: border-color var(--transition);
+  }
+  .login-field input:focus, .login-field select:focus { border-color: var(--red); background: var(--white); }
+  .login-field input[type="password"] { letter-spacing: 2px; }
+  .btn-login {
+    width: 100%; padding: 14px; background: var(--red); color: white;
+    border: none; border-radius: var(--radius);
+    font-family: 'Barlow Condensed', sans-serif; font-size: 1rem;
+    font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    cursor: pointer; transition: all var(--transition); margin-top: 6px;
+  }
+  .btn-login:hover { background: var(--red-light); }
+  .login-error {
+    background: rgba(139,26,26,0.08); border: 1px solid rgba(139,26,26,0.25);
+    border-radius: var(--radius); padding: 10px 14px; color: var(--red);
+    font-size: 0.82rem; font-weight: 500; margin-top: 14px;
+    display: none; text-align: center;
+  }
+  .login-error.show { display: block; }
+  .login-footer {
+    text-align: center; margin-top: 20px; padding-top: 18px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted); font-size: 0.75rem; line-height: 1.6;
+  }
+
+  /* ===== APP ===== */
+  #app { display: none; }
+  #app.visible { display: block; }
+
+  /* NAV */
+  nav {
+    background: var(--black); display: flex; align-items: center;
+    justify-content: space-between; padding: 0 40px; height: 56px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo img { height: 36px; display: block; }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-user {
+    color: rgba(255,255,255,0.5); font-size: 0.75rem;
+    letter-spacing: 0.5px; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;
+  }
+  .nav-user span { color: rgba(255,255,255,0.85); font-weight: 600; }
+  .btn-logout {
+    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 20px;
+    padding: 5px 14px; font-size: 0.72rem; font-family: 'Barlow', sans-serif;
+    font-weight: 600; cursor: pointer; letter-spacing: 0.5px; transition: all var(--transition);
+  }
+  .btn-logout:hover { background: rgba(255,255,255,0.14); color: white; }
+
+  /* HERO */
+  .hero {
+    background: var(--dark); padding: 36px 40px 30px;
+    border-bottom: 3px solid var(--red); text-align: center;
+  }
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.8rem, 4vw, 2.8rem);
+    color: var(--white); letter-spacing: 4px; margin-bottom: 8px;
+  }
+  .hero p { color: rgba(255,255,255,0.55); font-size: 0.85rem; letter-spacing: 1px; font-weight: 300; }
+
+  /* CONTAINER */
+  .container { max-width: 900px; margin: 0 auto; padding: 36px 20px 60px; }
+  .card {
+    background: var(--white); border-radius: 10px;
+    box-shadow: var(--shadow); padding: 36px 40px; margin-bottom: 28px;
+  }
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 1.1rem;
+    font-weight: 700; color: var(--red); text-transform: uppercase;
+    letter-spacing: 2px; margin-bottom: 20px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .full-width { grid-column: 1 / -1; }
+
+  label {
+    display: block; font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.85rem; font-weight: 600; color: var(--text-main);
+    letter-spacing: 0.3px; margin-bottom: 7px; text-transform: uppercase;
+  }
+  input[type="text"], input[type="date"], input[type="email"],
+  input[type="tel"], textarea, select {
+    width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius);
+    padding: 10px 13px; font-family: 'Barlow', sans-serif; font-size: 0.9rem;
+    color: var(--text-main); background: var(--gray-50); outline: none;
+    transition: border-color var(--transition);
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--red); background: var(--white); }
+  ::placeholder { color: #b0b0b0; font-style: italic; font-size: 0.85rem; }
+  textarea { resize: vertical; min-height: 90px; }
+
+  /* CHECKBOXES */
+  .check-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 4px; }
+  .check-item {
+    display: flex; align-items: center; gap: 9px; padding: 9px 12px;
+    border: 1.5px solid var(--border); border-radius: var(--radius);
+    cursor: pointer; transition: all var(--transition); background: var(--gray-50); user-select: none;
+  }
+  .check-item:hover { border-color: var(--red); background: rgba(139,26,26,0.04); }
+  .check-item.selected { border-color: var(--red); background: rgba(139,26,26,0.06); }
+  .check-item input[type="checkbox"] { display: none; }
+  .check-box {
+    width: 17px; height: 17px; border: 2px solid var(--border); border-radius: 3px;
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    transition: all var(--transition); background: var(--white);
+  }
+  .check-item.selected .check-box { background: var(--red); border-color: var(--red); }
+  .check-item.selected .check-box::after { content: '✓'; color: white; font-size: 11px; font-weight: 700; }
+  .check-label { font-size: 0.82rem; font-weight: 500; color: var(--text-main); line-height: 1.3; }
+
+  /* EVAL TABLE */
+  .eval-table { width: 100%; border-collapse: collapse; }
+  .eval-table thead tr { background: var(--gray-100); border-bottom: 2px solid var(--border); }
+  .eval-table thead th {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 0.78rem;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-muted); padding: 12px 16px; text-align: left;
+  }
+  .eval-table thead th.score-col { text-align: center; }
+  .eval-table tbody tr { border-bottom: 1px solid var(--gray-200); transition: background var(--transition); }
+  .eval-table tbody tr:hover { background: rgba(139,26,26,0.02); }
+  .eval-row td { padding: 16px; vertical-align: middle; }
+  .eval-title {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--text-main); display: block; margin-bottom: 3px;
+  }
+  .eval-q { font-size: 0.8rem; color: var(--text-muted); font-style: italic; }
+  .score-cell { text-align: center; width: 72px; }
+  .radio-score { display: none; }
+  .radio-circle {
+    width: 22px; height: 22px; border: 2px solid #ccc; border-radius: 50%;
+    margin: 0 auto; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; transition: all var(--transition); background: white;
+    font-size: 0.6rem; font-weight: 700; color: #999;
+  }
+  .radio-score:checked + .radio-circle {
+    border-color: var(--red); background: var(--red);
+    box-shadow: 0 0 0 3px rgba(139,26,26,0.15); color: white;
+  }
+  .radio-score:checked + .radio-circle::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: white; }
+  label:has(.radio-score):hover .radio-circle { border-color: var(--red); }
+
+  /* SIGNATURE */
+  .sig-canvas-wrap {
+    border: 1.5px solid var(--border); border-radius: var(--radius);
+    background: var(--gray-50); position: relative; overflow: hidden; margin-bottom: 10px;
+  }
+  canvas#sigCanvas { display: block; width: 100%; height: 160px; cursor: crosshair; touch-action: none; }
+  .sig-hint {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    color: #c8c8c8; font-size: 0.82rem; pointer-events: none;
+    transition: opacity 0.3s; font-style: italic; white-space: nowrap;
+  }
+  .sig-btns { display: flex; gap: 8px; }
+  .btn-sig {
+    padding: 8px 16px; border-radius: var(--radius); border: none;
+    font-family: 'Barlow', sans-serif; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; letter-spacing: 0.3px; transition: all var(--transition);
+  }
+  .btn-capture { background: var(--gray-200); color: var(--text-main); }
+  .btn-capture:hover { background: #d0d0d0; }
+  .btn-capture.captured { background: #2d7a2d; color: white; }
+  .btn-clear { background: var(--dark); color: white; }
+  .btn-clear:hover { background: #333; }
+
+  /* SUBMIT */
+  .btn-submit {
+    width: 100%; padding: 18px; background: var(--red); color: white;
+    border: none; border-radius: var(--radius);
+    font-family: 'Barlow Condensed', sans-serif; font-size: 1.1rem;
+    font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    cursor: pointer; transition: all var(--transition); margin-top: 8px;
+  }
+  .btn-submit:hover:not(:disabled) { background: var(--red-light); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(139,26,26,0.3); }
+  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* SUCCESS */
+  #success-screen {
+    display: none; text-align: center; background: var(--white);
+    border-radius: 14px; box-shadow: var(--shadow); padding: 64px 40px; margin-top: 40px;
+  }
+  #success-screen.show { display: block; }
+  .success-icon {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(139,26,26,0.08); border: 3px solid var(--red);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px; font-size: 1.9rem;
+  }
+  #success-screen h2 {
+    font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem;
+    letter-spacing: 3px; margin-bottom: 12px;
+  }
+  #success-screen p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; }
+  .btn-nueva {
+    margin-top: 28px; padding: 13px 32px; background: var(--red); color: white;
+    border: none; border-radius: var(--radius);
+    font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem;
+    font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    cursor: pointer; transition: all var(--transition);
+  }
+  .btn-nueva:hover { background: var(--red-light); }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 30px; right: 30px; background: #1a1a1a; color: white;
+    padding: 14px 22px; border-radius: 8px; font-size: 0.85rem; font-weight: 500;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3); transform: translateY(80px); opacity: 0;
+    transition: all 0.3s ease; z-index: 9999; border-left: 4px solid var(--red);
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  @media (max-width: 640px) {
+    nav { padding: 0 16px; }
+    .card { padding: 24px 20px; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .check-grid { grid-template-columns: 1fr 1fr; }
+    .login-body { padding: 28px 24px; }
+    .login-header { padding: 24px 24px 20px; }
+    .nav-user { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-header">
+      <img src="https://i.ibb.co/8gyB9m5y/LOGO-MINGA.png" alt="MINGA">
+      <p>Calidad en Servicios Petroleros · ISO 9001 / API Q1</p>
+    </div>
+    <div class="login-body">
+      <div class="login-title">Acceso al Formulario</div>
+
+      <div class="login-field">
+        <label for="login-cliente">Empresa / Cliente</label>
+        <select id="login-cliente">
+          <option value="">Seleccione su empresa...</option>
+          <option value="SLB">SLB – Cameron</option>
+          <option value="HALLIBURTON">Halliburton</option>
+          <option value="WEATHERFORD">Weatherford</option>
+          <option value="SCHLUMBERGER">Schlumberger</option>
+          <option value="CLIENTEFINAL">Cliente Final</option>
+        </select>
+      </div>
+
+      <div class="login-field">
+        <label for="login-clave">Contraseña de Acceso</label>
+        <input type="password" id="login-clave" placeholder="••••••••••" autocomplete="off">
+      </div>
+
+      <button class="btn-login" onclick="doLogin()">Ingresar</button>
+
+      <div class="login-error" id="login-error">
+        Empresa o contraseña incorrecta. Contacte a su representante MINGA.
+      </div>
+
+      <div class="login-footer">
+        ¿No tiene contraseña? Contacte a su representante MINGA<br>para recibir sus credenciales de acceso.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app">
+
+  <nav>
+    <div class="nav-logo"><img src="https://i.ibb.co/8gyB9m5y/LOGO-MINGA.png" alt="MINGA"></div>
+    <div class="nav-right">
+      <div class="nav-user">Acceso: <span id="nav-cliente-nombre">–</span></div>
+      <button class="btn-logout" onclick="doLogout()">Cerrar sesión</button>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <h1>Evaluación de Satisfacción al Cliente</h1>
+    <p>MINGA Calidad en Servicios Petroleros · ISO 9001 / API Q1</p>
+  </div>
+
+  <div class="container">
+    <div id="form-content">
+
+      <!-- INFORMACIÓN GENERAL -->
+      <div class="card">
+        <div class="section-title">Información General</div>
+        <div class="grid-2">
+          <div>
+            <label for="f-dept">Departamento</label>
+            <input type="text" id="f-dept" placeholder="Ej. Ventas">
+          </div>
+          <div>
+            <label for="f-fecha">Fecha</label>
+            <input type="date" id="f-fecha">
+          </div>
+          <div>
+            <label for="f-rig">Drilling Rig / Workover Rig / Field / Others</label>
+            <input type="text" id="f-rig" placeholder="Ej. ORD 903">
+          </div>
+          <div>
+            <label for="f-ls">LS</label>
+            <input type="text" id="f-ls" placeholder="Ej. LS007719">
+          </div>
+          <div>
+            <label for="f-cliente">Cliente</label>
+            <input type="text" id="f-cliente" placeholder="Ej. SLB – CAMERON">
+          </div>
+          <div>
+            <label for="f-pozo">Pozo</label>
+            <input type="text" id="f-pozo" placeholder="Ej. YLBD 023">
+          </div>
+          <div class="full-width">
+            <label for="f-desc">Descripción del Servicio</label>
+            <textarea id="f-desc" rows="4" placeholder="Describa el servicio prestado..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUCTOS Y SERVICIOS -->
+      <div class="card">
+        <div class="section-title">Productos y Servicios</div>
+        <div class="check-grid">
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-box"></span><span class="check-label">Wellhead Equipment</span></label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-box"></span><span class="check-label">BOP Repair Services</span></label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-box"></span><span class="check-label">Pre-Com Services</span></label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-box"></span><span class="check-label">Wellhead Repair Services</span></label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-box"></span><span class="check-label">Calibrations Services</span></label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-box"></span><span class="check-label">Com Services</span></label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-box"></span><span class="check-label">Wellhead Installation Services</span></label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-box"></span><span class="check-label">Certification Services</span></label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-box"></span><span class="check-label">Start-up Services</span></label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-box"></span><span class="check-label">Supplies / Others</span></label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-box"></span><span class="check-label">FAT / SAT Services</span></label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-box"></span><span class="check-label">Others</span></label>
+        </div>
+      </div>
+
+      <!-- EVALUACIÓN DE SERVICIOS -->
+      <div class="card">
+        <div class="section-title">Evaluación de Servicios</div>
+        <table class="eval-table">
+          <thead>
+            <tr>
+              <th>Evaluación de Servicios</th>
+              <th class="score-col">4</th><th class="score-col">3</th>
+              <th class="score-col">2</th><th class="score-col">1</th>
+              <th class="score-col">N/A</th>
+            </tr>
+          </thead>
+          <tbody id="eval-services-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- EVALUACIÓN COMPRA DE BIENES -->
+      <div class="card">
+        <div class="section-title">Evaluación Compra de Bienes</div>
+        <table class="eval-table">
+          <thead>
+            <tr>
+              <th>Criterio</th>
+              <th class="score-col">4</th><th class="score-col">3</th>
+              <th class="score-col">2</th><th class="score-col">1</th>
+              <th class="score-col">N/A</th>
+            </tr>
+          </thead>
+          <tbody id="eval-bienes-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- OBSERVACIONES -->
+      <div class="card">
+        <div class="section-title">Observaciones</div>
+        <textarea id="f-obs" rows="4" placeholder="Ingrese sus observaciones aquí..."></textarea>
+      </div>
+
+      <!-- FIRMAS -->
+      <div class="card">
+        <div class="section-title">Firmas</div>
+        <div class="grid-2" style="margin-bottom:24px;">
+          <div>
+            <label for="f-nombre-cliente">Nombre del Cliente</label>
+            <input type="text" id="f-nombre-cliente" placeholder="Escriba su nombre completo">
+          </div>
+          <div>
+            <label for="f-rep-minga">Nombre Representante MINGA</label>
+            <select id="f-rep-minga">
+              <option value="">Seleccione un vendedor...</option>
+              <option>Carlos Andrade – Gerente de Ventas</option>
+              <option>Mariana Vásquez – Ejecutiva de Cuentas</option>
+              <option>Diego Herrera – Asesor Técnico</option>
+              <option>Patricia Molina – Coordinadora de Proyectos</option>
+              <option>Andrés Salas – Representante de Campo</option>
+            </select>
+          </div>
+        </div>
+
+        <label>Firma del Cliente</label>
+        <div class="sig-canvas-wrap">
+          <canvas id="sigCanvas" width="820" height="160"></canvas>
+          <div class="sig-hint" id="sigHint">Firme aquí con el mouse o con el dedo</div>
+        </div>
+        <div class="sig-btns">
+          <button class="btn-sig btn-capture" id="btnCapture" onclick="captureSignature()">Capturar y Bloquear</button>
+          <button class="btn-sig btn-clear" onclick="clearSignature()">Limpiar / Desbloquear</button>
+        </div>
+
+        <div class="grid-2" style="margin-top:24px;">
+          <div><label for="f-cedula">Cédula de Identidad</label><input type="text" id="f-cedula"></div>
+          <div><label for="f-celular">Número de Celular</label><input type="tel" id="f-celular"></div>
+          <div><label for="f-cargo">Cargo</label><input type="text" id="f-cargo"></div>
+          <div><label for="f-email">Correo Electrónico</label><input type="email" id="f-email"></div>
+        </div>
+      </div>
+
+      <button class="btn-submit" id="btn-submit" onclick="submitForm()">Enviar Evaluación</button>
+
+    </div><!-- /form-content -->
+
+    <!-- ÉXITO -->
+    <div id="success-screen">
+      <div class="success-icon">✓</div>
+      <h2>¡Evaluación Enviada!</h2>
+      <p>Gracias por completar la evaluación de satisfacción al cliente.<br>Su retroalimentación es muy valiosa para MINGA.</p>
+      <button class="btn-nueva" onclick="nuevaEvaluacion()">Llenar Nueva Evaluación</button>
+    </div>
+
+  </div><!-- /container -->
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+//  CONFIGURACIÓN — EDITAR ANTES DE PUBLICAR
+// ============================================================
+
+const CLIENTES = {
+  "SLB":          { clave: "MNG#slb847",  nombre: "SLB – Cameron"   },
+  "HALLIBURTON":  { clave: "MNG#hal293",  nombre: "Halliburton"      },
+  "WEATHERFORD":  { clave: "MNG#wft561",  nombre: "Weatherford"      },
+  "SCHLUMBERGER": { clave: "MNG#sch729",  nombre: "Schlumberger"     },
+  "CLIENTEFINAL":     { clave: "MNG#cl5014",  nombre: "Cliente Final"        },
+};
+
+// Pega aquí la URL del trigger HTTP de Power Automate
+const POWER_AUTOMATE_URL = "PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE";
+
+// ============================================================
+//  LOGIN
+// ============================================================
+
+function doLogin() {
+  const key   = document.getElementById('login-cliente').value;
+  const clave = document.getElementById('login-clave').value.trim();
+  const err   = document.getElementById('login-error');
+
+  if (!key || !clave) {
+    err.textContent = 'Por favor seleccione su empresa e ingrese la contraseña.';
+    err.classList.add('show'); return;
+  }
+  const c = CLIENTES[key];
+  if (!c || clave !== c.clave) {
+    err.textContent = 'Empresa o contraseña incorrecta. Contacte a su representante MINGA.';
+    err.classList.add('show');
+    document.getElementById('login-clave').value = ''; return;
+  }
+  err.classList.remove('show');
+  sessionStorage.setItem('minga_auth',   key);
+  sessionStorage.setItem('minga_nombre', c.nombre);
+  showApp(c.nombre);
+}
+
+document.getElementById('login-clave').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function doLogout() {
+  sessionStorage.removeItem('minga_auth');
+  sessionStorage.removeItem('minga_nombre');
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('login-overlay').classList.remove('hidden');
+  document.getElementById('login-cliente').value = '';
+  document.getElementById('login-clave').value   = '';
+}
+
+function showApp(nombre) {
+  document.getElementById('login-overlay').classList.add('hidden');
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('nav-cliente-nombre').textContent = nombre;
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const auth   = sessionStorage.getItem('minga_auth');
+  const nombre = sessionStorage.getItem('minga_nombre');
+  if (auth && CLIENTES[auth] && nombre) showApp(nombre);
+  document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
+});
+
+// ============================================================
+//  TABLAS DE EVALUACIÓN
+// ============================================================
+
+const serviceEvals = [
+  { id:'s1', title:'1.- TIEMPOS DE SERVICIO',         q:'¿Los tiempos establecidos en la Orden de Servicio fueron adecuados?' },
+  { id:'s2', title:'2.- EFICACIA DEL SERVICIO',       q:'¿El servicio que recibió cumplió con todas las especificaciones técnicas?' },
+  { id:'s3', title:'3.- SOPORTE TÉCNICO',             q:'¿El soporte técnico y el servicio brindado por parte del personal fue efectivo?' },
+  { id:'s4', title:'4.- HERRAMIENTAS DE INSTALACIÓN', q:'¿Las herramientas utilizadas durante la instalación se desempeñaron de manera eficaz?' },
+  { id:'s5', title:'5.- ACTITUD DEL PERSONAL',        q:'¿La actitud y colaboración del personal durante el trabajo fue la adecuada?' },
+  { id:'s6', title:'6.- CUMPLIMIENTO HSE',            q:'¿Se cumplió con las normas de seguridad, salud y cuidado del medio ambiente?' },
+];
+const bienesEvals = [
+  { id:'b1', title:'1.- DISPONIBILIDAD DE RESPUESTA DE LOS BIENES', q:'¿La disponibilidad de suministros, fueron los requeridos?' },
+];
+
+function buildEvalRow(item, groupId) {
+  const tr = document.createElement('tr');
+  tr.className = 'eval-row';
+  tr.innerHTML = `
+    <td><span class="eval-title">${item.title}</span><span class="eval-q">${item.q}</span></td>
+    ${[4,3,2,1].map(v=>`<td class="score-cell"><label>
+      <input type="radio" name="${groupId}-${item.id}" value="${v}" class="radio-score">
+      <div class="radio-circle"></div></label></td>`).join('')}
+    <td class="score-cell"><label>
+      <input type="radio" name="${groupId}-${item.id}" value="NA" class="radio-score">
+      <div class="radio-circle">N/A</div></label></td>`;
+  return tr;
+}
+
+serviceEvals.forEach(i => document.getElementById('eval-services-tbody').appendChild(buildEvalRow(i,'svc')));
+bienesEvals.forEach(i  => document.getElementById('eval-bienes-tbody').appendChild(buildEvalRow(i,'bien')));
+
+// ============================================================
+//  CHECKBOXES
+// ============================================================
+
+function toggleCheck(el) {
+  el.classList.toggle('selected');
+  el.querySelector('input[type="checkbox"]').checked = el.classList.contains('selected');
+}
+
+// ============================================================
+//  FIRMA
+// ============================================================
+
+const canvas = document.getElementById('sigCanvas');
+const ctx    = canvas.getContext('2d');
+let drawing = false, locked = false, hasSig = false;
+
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const scX = canvas.width/r.width, scY = canvas.height/r.height;
+  if (e.touches) return { x:(e.touches[0].clientX-r.left)*scX, y:(e.touches[0].clientY-r.top)*scY };
+  return { x:(e.clientX-r.left)*scX, y:(e.clientY-r.top)*scY };
+}
+canvas.addEventListener('mousedown',  e => { if(locked)return; drawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x,p.y); });
+canvas.addEventListener('mousemove',  e => {
+  if(!drawing||locked)return;
+  ctx.lineWidth=2; ctx.lineCap='round'; ctx.strokeStyle='#1a1a1a';
+  const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke();
+  hasSig=true; document.getElementById('sigHint').style.opacity='0';
+});
+canvas.addEventListener('mouseup',    () => { drawing=false; });
+canvas.addEventListener('mouseleave', () => { drawing=false; });
+canvas.addEventListener('touchstart', e => { e.preventDefault(); if(locked)return; drawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x,p.y); }, {passive:false});
+canvas.addEventListener('touchmove',  e => { e.preventDefault(); if(!drawing||locked)return; ctx.lineWidth=2; ctx.lineCap='round'; ctx.strokeStyle='#1a1a1a'; const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); hasSig=true; document.getElementById('sigHint').style.opacity='0'; }, {passive:false});
+canvas.addEventListener('touchend',   () => { drawing=false; });
+
+function captureSignature() {
+  if(!hasSig){ showToast('⚠ Dibuje su firma primero'); return; }
+  locked=true; canvas.style.cursor='default';
+  const btn=document.getElementById('btnCapture');
+  btn.textContent='✓ Firma Capturada'; btn.classList.add('captured');
+  showToast('✓ Firma capturada y bloqueada');
+}
+function clearSignature() {
+  locked=false; drawing=false; hasSig=false;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  canvas.style.cursor='crosshair';
+  document.getElementById('sigHint').style.opacity='1';
+  const btn=document.getElementById('btnCapture');
+  btn.textContent='Capturar y Bloquear'; btn.classList.remove('captured');
+}
+
+// ============================================================
+//  ENVÍO → POWER AUTOMATE
+// ============================================================
+
+function getRadio(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : '';
+}
+function getProductos() {
+  return Array.from(document.querySelectorAll('.check-item.selected'))
+    .map(el => el.querySelector('.check-label').textContent.trim()).join(', ');
+}
+
+async function submitForm() {
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  const payload = {
+    fecha:           document.getElementById('f-fecha').value,
+    departamento:    document.getElementById('f-dept').value,
+    rig:             document.getElementById('f-rig').value,
+    ls:              document.getElementById('f-ls').value,
+    cliente:         document.getElementById('f-cliente').value,
+    pozo:            document.getElementById('f-pozo').value,
+    descripcion:     document.getElementById('f-desc').value,
+    productos:       getProductos(),
+    s1_tiempos:      getRadio('svc-s1'),
+    s2_eficacia:     getRadio('svc-s2'),
+    s3_soporte:      getRadio('svc-s3'),
+    s4_herramientas: getRadio('svc-s4'),
+    s5_actitud:      getRadio('svc-s5'),
+    s6_hse:          getRadio('svc-s6'),
+    b1_bienes:       getRadio('bien-b1'),
+    observaciones:   document.getElementById('f-obs').value,
+    nombre_cliente:  document.getElementById('f-nombre-cliente').value,
+    rep_minga:       document.getElementById('f-rep-minga').value,
+    cedula:          document.getElementById('f-cedula').value,
+    celular:         document.getElementById('f-celular').value,
+    cargo:           document.getElementById('f-cargo').value,
+    email:           document.getElementById('f-email').value,
+  };
+
+  try {
+    const res = await fetch(POWER_AUTOMATE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok || res.status === 202) {
+      document.getElementById('form-content').style.display = 'none';
+      document.getElementById('success-screen').classList.add('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      throw new Error(`HTTP ${res.status}`);
+    }
+  } catch {
+    showToast('⚠ Error al enviar. Intente nuevamente.');
+    btn.disabled = false;
+    btn.textContent = 'Enviar Evaluación';
+  }
+}
+
+function nuevaEvaluacion() {
+  ['f-dept','f-rig','f-ls','f-cliente','f-pozo','f-desc','f-obs',
+   'f-nombre-cliente','f-cedula','f-celular','f-cargo','f-email']
+    .forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('f-rep-minga').value = '';
+  document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
+  document.querySelectorAll('.check-item.selected').forEach(el => {
+    el.classList.remove('selected'); el.querySelector('input').checked = false;
+  });
+  document.querySelectorAll('.radio-score:checked').forEach(el => { el.checked = false; });
+  clearSignature();
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = false; btn.textContent = 'Enviar Evaluación';
+  document.getElementById('form-content').style.display = 'block';
+  document.getElementById('success-screen').classList.remove('show');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================================
+//  TOAST
+// ============================================================
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>
